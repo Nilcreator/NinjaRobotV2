@@ -91,35 +91,43 @@ To enhance robustness for the Raspberry Pi Zero 2W, we propose the following imp
 
 This plan is divided into phases. **Crucially, a linting and static analysis step is mandatory at the end of each phase to ensure no regressions.**
 
-### Phase 1: Standardization & Configuration
-**Goal:** Clean up the codebase and separate configuration from logic.
-1.  **Create `requirements.txt`:** List all Python dependencies (`google-generativeai`, `Flask`, `smbus2`, `RPi.GPIO`, etc.) with versions. *Note: `DFRobot_RaspberryPi_Expansion_Board.py` is local and not listed here.*
-2.  **Implement `config.py`:** Create a configuration module that loads from `.env` or defaults. Move all pins, keys, and constants here.
-3.  **Setup Logging:** Replace `print()` with a structured logger configuration.
-4.  **Mandatory Linting:** Run `pylint` and `flake8`. Fix all P1/P2 errors (syntax, undefined variables).
+### Phase 1: Project Restructuring & Environment
+**Goal:** Establish a professional directory structure and automate environment setup using `uv`.
+1.  **Directory Structure:** Create `src/`, `tests/`, `config/`, and `scripts/` directories. Move existing python files to `src/` (temporarily, before refactoring).
+2.  **`uv` Installation:** Install `uv` (an extremely fast Python package installer and resolver) to manage dependencies.
+3.  **`pyproject.toml`:** Create a `pyproject.toml` file to define project metadata and dependencies (replacing `requirements.txt`).
+4.  **`setup.sh`:** Update script to install `uv`, create a virtual environment via `uv venv`, and install dependencies via `uv pip sync`.
+5.  **Mandatory Linting:** Check file structure and permissions.
 
-### Phase 2: Core Refactoring (OOP)
-**Goal:** Encapsulate logic to remove global state.
-1.  **Refactor `Ninja_Movements_v1.py`:** Create a `MovementController` class. It should own the `board` instance.
-2.  **Refactor `ninja_core.py`:** Create a `RobotBrain` class that coordinates the `MovementController` and Gemini API.
-3.  **Update `web_interface.py`:** Instantiate the `RobotBrain` class instead of importing globals.
-4.  **Mandatory Linting:** Run `pylint`. Ensure a score > 7.0/10. Verify no circular imports.
+### Phase 2: Configuration & Logging
+**Goal:** Centralize configuration and improve observability.
+1.  **`config/settings.py`:** Create a configuration module using `pydantic-settings` or `python-dotenv` to load environment variables (API Keys, Pins). Remove hardcoded values from `ninja_core.py`.
+2.  **Logging Setup:** Implement a centralized logger in `src/utils/logger.py` that outputs to both console (stdout) and a rotating log file.
+3.  **Mandatory Linting:** Run `pylint` and `flake8` on new config/logger modules. Fix all issues.
 
-### Phase 3: Robustness & Error Handling
-**Goal:** Make the robot resilient to hardware faults.
-1.  **I2C Retry Logic:** Wrap `DFRobot` calls in a retry decorator to handle `OSError: [Errno 121] Remote I/O error`.
-2.  **Thread Safety:** Use `threading.Event` and `threading.Lock` for movement control instead of boolean flags.
-3.  **Gemini Fallback:** Handle API timeouts gracefully; provide offline fallback responses if possible (or just specific error sounds).
-4.  **Mandatory Linting:** Run `pylint` and `mypy` (type checking) to catch type-related bugs.
+### Phase 3: Hardware Abstraction Layer (HAL)
+**Goal:** Isolate hardware interactions to improve robustness and testability.
+1.  **Wrapper Class:** Create `src/hardware/hat_driver.py` to wrap the local `DFRobot_RaspberryPi_Expansion_Board` library.
+2.  **I2C Resilience:** Implement a decorator `@retry_i2c` in the wrapper to handle `OSError: [Errno 121]` automatically.
+3.  **Mocking:** Create a `MockHatDriver` for testing logic on non-Pi hardware (like this development environment).
+4.  **Mandatory Linting:** Run `mypy` for type safety and `pylint` on hardware drivers. Fix all issues.
 
-### Phase 4: Optimization for Pi Zero 2W
-**Goal:** Tune for the specific hardware constraints.
-1.  **Startup Optimization:** Lazy load heavy libraries (like `google.generativeai`) only when needed, or initialize them in a background thread to speed up web server boot.
-2.  **Swap Management:** Verify swap configuration in `setup.sh` to prevent OOM kills during operation.
-3.  **Mandatory Linting:** Final code quality check. Aim for `pylint` score > 9.0.
+### Phase 4: Core Logic Refactoring (OOP)
+**Goal:** Encapsulate logic into cohesive classes.
+1.  **`MovementController`:** Refactor `Ninja_Movements_v1.py` into `src/controllers/movement.py`. It should use the HAL driver.
+2.  **`SensorManager`:** Refactor `Ninja_Distance.py` and `Ninja_Buzzer.py` into `src/controllers/sensors.py`.
+3.  **`RobotBrain`:** Refactor `ninja_core.py` into `src/core/brain.py`. This class coordinates the controllers and manages the Gemini session.
+4.  **Mandatory Linting:** Run `pylint` (score > 8.0) and `flake8`. Verify no circular imports.
 
-### Phase 5: Documentation & Verification
+### Phase 5: Web Interface & Integration
+**Goal:** Update the entry point to use the new architecture.
+1.  **Refactor Flask App:** Update `web_interface.py` (move to `src/app.py`) to instantiate `RobotBrain`.
+2.  **Async Initialization:** Initialize `RobotBrain` in a background thread to allow the web server to start immediately (improving perceived responsiveness).
+3.  **Mandatory Linting:** Final full-project lint using `pylint` and `mypy`.
+
+### Phase 6: Verification & Documentation
 **Goal:** Ensure the system is usable and maintainable.
-1.  **Update `readme.md`:** Reflect the new architecture and setup instructions.
-2.  **Verification Script:** Create a `verify_hardware.py` script to test individual components (Servo, Mic, I2C) in isolation.
-3.  **Final Review:** User acceptance testing.
+1.  **`verify_hardware.py`:** Create a script to test individual components using the new HAL.
+2.  **Update `readme.md`:** Reflect the new `src/` structure, `uv` usage, and setup instructions.
+3.  **User Acceptance Testing:** Manual verification of all voice and web commands.
+4.  **Mandatory Linting:** Final check on verification scripts.

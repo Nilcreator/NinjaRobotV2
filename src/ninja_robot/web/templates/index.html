@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NinjaRobot Control</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f0f0f0; }
+        h1 { color: #333; }
+        .control-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 400px; margin: 0 auto; }
+        button { padding: 15px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
+        button:active { background-color: #0056b3; }
+        button.stop { background-color: #dc3545; grid-column: span 3; }
+        #status { margin-top: 20px; font-weight: bold; color: #555; }
+        .slider-container { margin: 20px auto; max-width: 400px; }
+    </style>
+</head>
+<body>
+    <h1>NinjaRobot V2</h1>
+    
+    <div class="control-panel">
+        <button onclick="sendCommand('walk', {speed: 'slow'})">Walk Slow</button>
+        <button onclick="sendCommand('walk', {speed: 'normal'})">Walk</button>
+        <button onclick="sendCommand('walk', {speed: 'fast'})">Walk Fast</button>
+        
+        <button onclick="sendCommand('run', {speed: 'normal'})">Run</button>
+        <button onclick="sendCommand('hello')">Hello</button>
+        <button onclick="sendCommand('rest')">Rest</button>
+        
+        <button class="stop" onclick="sendCommand('stop')">STOP</button>
+        <button class="stop" onclick="sendCommand('reset')" style="background-color: #ffc107; color: black;">RESET</button>
+    </div>
+
+    <div id="status">Status: Ready</div>
+
+    <script>
+        async function sendCommand(cmd, params = {}) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerText = `Sending: ${cmd}...`;
+            
+            try {
+                const response = await fetch('/api/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmd, params: params })
+                });
+                const data = await response.json();
+                statusDiv.innerText = `Result: ${data.result}`;
+            } catch (error) {
+                statusDiv.innerText = `Error: ${error}`;
+            }
+        }
+
+        // Poll for status (distance) every 2 seconds
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                console.log("Distance:", data.distance);
+            } catch (e) {
+                console.error("Status poll failed", e);
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
