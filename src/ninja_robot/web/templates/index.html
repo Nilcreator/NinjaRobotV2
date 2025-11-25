@@ -1,66 +1,759 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NinjaRobot Control</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no">
+    <title>Ninja Robot Controller</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f0f0f0; }
-        h1 { color: #333; }
-        .control-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 400px; margin: 0 auto; }
-        button { padding: 15px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
-        button:active { background-color: #0056b3; }
-        button.stop { background-color: #dc3545; grid-column: span 3; }
-        #status { margin-top: 20px; font-weight: bold; color: #555; }
-        .slider-container { margin: 20px auto; max-width: 400px; }
-    </style>
-</head>
-<body>
-    <h1>NinjaRobot V2</h1>
-    
-    <div class="control-panel">
-        <button onclick="sendCommand('walk', {speed: 'slow'})">Walk Slow</button>
-        <button onclick="sendCommand('walk', {speed: 'normal'})">Walk</button>
-        <button onclick="sendCommand('walk', {speed: 'fast'})">Walk Fast</button>
-        
-        <button onclick="sendCommand('run', {speed: 'normal'})">Run</button>
-        <button onclick="sendCommand('hello')">Hello</button>
-        <button onclick="sendCommand('rest')">Rest</button>
-        
-        <button class="stop" onclick="sendCommand('stop')">STOP</button>
-        <button class="stop" onclick="sendCommand('reset')" style="background-color: #ffc107; color: black;">RESET</button>
-    </div>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    <div id="status">Status: Ready</div>
+        body {
+            font-family: sans-serif;
+            background-color: #1a1a1a;
+            color: #ccc;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+            padding: 20px;
+            overflow-x: hidden;
+        }
 
-    <script>
-        async function sendCommand(cmd, params = {}) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerText = `Sending: ${cmd}...`;
-            
-            try {
-                const response = await fetch('/api/command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ command: cmd, params: params })
-                });
-                const data = await response.json();
-                statusDiv.innerText = `Result: ${data.result}`;
-            } catch (error) {
-                statusDiv.innerText = `Error: ${error}`;
+        .container {
+            width: 100%;
+            max-width: 750px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .controller {
+            position: relative;
+            width: 100%;
+            background-color: #303030;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 25px;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+            min-height: 170px;
+        }
+
+        .ctrl-button {
+            border: none;
+            cursor: pointer;
+            background-color: #444;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+            transition: all 0.1s ease-in-out;
+            color: #ccc;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .ctrl-button:active,
+        .ctrl-button.recording {
+            /* Added .recording for visual feedback */
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+            transform: translateY(1px);
+        }
+
+        .ctrl-button.recording {
+            /* Specific style for active recording button */
+            background-color: #d9534f;
+            /* Red background when recording */
+        }
+
+
+        .d-pad {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .action-buttons {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .action-button {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2em;
+            line-height: 40px;
+            text-align: center;
+        }
+
+        #btn-y {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #btn-x {
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #btn-b {
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #btn-a {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .d-pad-button {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            background-color: #555;
+            border-radius: 4px;
+            color: #ccc;
+            font-size: 1.5em;
+        }
+
+        #dpad-up {
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #dpad-left {
+            left: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #dpad-right {
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #dpad-down {
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .center-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            flex-grow: 1;
+            padding: 0 15px;
+        }
+
+        .center-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .center-button {
+            width: 75px;
+            /* Base width for buttons like Stop, Rest, Mic EN/JP */
+            height: 38px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            /* Adjusted font size for "Mic (EN)" */
+            padding: 0 5px;
+            flex-grow: 1;
+            /* Allow to grow if only one button in row */
+            flex-basis: 0;
+            /* Allow to shrink if needed, for two buttons in a row */
+            max-width: 150px;
+            /* Max width if it's the only one growing */
+        }
+
+        .mode-active-btn {
+            background-color: #6a6a6a;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+            border: 1px solid #888;
+        }
+
+        .status-container {
+            width: 100%;
+            background: #303030;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            color: #ccc;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .status-container h2 {
+            margin-top: 0;
+            color: #eee;
+            border-bottom: 1px solid #555;
+            padding-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        .status-container p {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+
+        .status-container pre {
+            background-color: #222;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 150px;
+            overflow-y: auto;
+            color: #bbb;
+            font-size: 0.85em;
+        }
+
+        #processing-status-text {
+            font-style: italic;
+            color: #aaa;
+            margin-top: 10px;
+            display: block;
+            text-align: center;
+            min-height: 1.2em;
+            width: 100%;
+        }
+
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 15px;
+        }
+
+        .flash-messages li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid;
+        }
+
+        .flash-success {
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+            color: #3c763d;
+        }
+
+        .flash-error {
+            background-color: #f2dede;
+            border-color: #ebccd1;
+            color: #a94442;
+        }
+
+        .flash-warning {
+            background-color: #fcf8e3;
+            border-color: #faebcc;
+            color: #8a6d3b;
+        }
+
+        .flash-info {
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+            color: #31708f;
+        }
+
+        @media (max-width: 650px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .controller {
+                flex-direction: column;
+                gap: 25px;
+                padding: 20px;
+                min-height: auto;
+            }
+
+            .d-pad {
+                width: 100%;
+                max-width: 160px;
+                height: 120px;
+                margin: 0 auto;
+            }
+
+            .action-buttons {
+                width: 100%;
+                max-width: 160px;
+                height: 120px;
+                margin: 0 auto;
+            }
+
+            .center-area {
+                width: 100%;
+                max-width: 300px;
+                padding: 0;
+                order: 1;
+                gap: 10px;
+            }
+
+            .center-button {
+                font-size: 0.75em;
+                /* Adjusted for potentially longer text "Mic (EN)" */
+                height: 35px;
+                /* width: 45%; /* Let flexbox handle width distribution with gap */
+            }
+
+            .d-pad-button {
+                width: 32px;
+                height: 32px;
+                font-size: 1.4em;
+            }
+
+            #dpad-up {
+                top: 0px;
+            }
+
+            #dpad-left {
+                left: 0px;
+            }
+
+            #dpad-right {
+                right: 0px;
+            }
+
+            #dpad-down {
+                bottom: 0px;
+            }
+
+            .action-button {
+                width: 38px;
+                height: 38px;
+                font-size: 1.1em;
+                line-height: 38px;
+            }
+
+            .status-container {
+                font-size: 0.85em;
+                margin-top: 15px;
+            }
+
+            .status-container pre {
+                max-height: 100px;
             }
         }
 
-        // Poll for status (distance) every 2 seconds
-        setInterval(async () => {
-            try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
-                console.log("Distance:", data.distance);
-            } catch (e) {
-                console.error("Status poll failed", e);
+        @media (max-width: 420px) {
+            .controller {
+                gap: 20px;
+                padding: 15px;
             }
-        }, 2000);
+
+            .d-pad,
+            .action-buttons {
+                max-width: 140px;
+                height: 110px;
+            }
+
+            .center-area {
+                max-width: 260px;
+                gap: 8px;
+            }
+
+            .center-button {
+                font-size: 0.7em;
+                height: 32px;
+            }
+
+            /* Further adjust for very small screens */
+            .d-pad-button {
+                width: 30px;
+                height: 30px;
+            }
+
+            .action-button {
+                width: 35px;
+                height: 35px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="controller">
+            <div class="d-pad">
+                <button id="dpad-up" class="ctrl-button d-pad-button">▲</button>
+                <button id="dpad-left" class="ctrl-button d-pad-button">◀</button>
+                <button id="dpad-right" class="ctrl-button d-pad-button">▶</button>
+                <button id="dpad-down" class="ctrl-button d-pad-button">▼</button>
+            </div>
+
+            <div class="center-area">
+                <div class="center-row">
+                    <button id="btn-walk-mode" class="ctrl-button center-button mode-active-btn">Walk</button>
+                    <button id="btn-run-mode" class="ctrl-button center-button">Run</button>
+                </div>
+                <div class="center-row">
+                    <button id="btn-stop-action" class="ctrl-button center-button">Stop</button>
+                    <button id="btn-rest-action" class="ctrl-button center-button">Rest</button>
+                </div>
+                <div class="center-row"> <!-- New row for Mic buttons -->
+                    <button id="btn-mic-en" class="ctrl-button center-button" disabled>Mic (EN)</button>
+                    <button id="btn-mic-jp" class="ctrl-button center-button" disabled>Mic (JP)</button>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="btn-y" class="ctrl-button action-button">Y</button> <!-- Fast -->
+                <button id="btn-x" class="ctrl-button action-button">X</button> <!-- Normal -->
+                <button id="btn-b" class="ctrl-button action-button">B</button> <!-- Hello -->
+                <button id="btn-a" class="ctrl-button action-button">A</button> <!-- Slow -->
+            </div>
+        </div>
+        <div id="processing-status-text">Initializing...</div>
+
+        <div class="status-container">
+            <div id="flash-container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %} <ul class=flash-messages> {% for category, message in messages %} <li
+                        class="flash-{{ category }}">{{ message }}</li> {% endfor %} </ul> {% endif %}
+                {% endwith %}
+            </div>
+            <h2>Status</h2>
+            <p><strong>Robot State:</strong> <span id="robot-state">{{ robot_state }}</span></p>
+            <p><strong>Current Mode:</strong> <span id="current-mode">Walk</span> | <strong>Speed:</strong> <span
+                    id="current-speed">Normal</span></p>
+            <p><strong>Last System Message:</strong> <span id="system-status">{{ status }}</span></p>
+            <p><strong>Last Command (<span id="last-command-type">{{ last_command_type }}</span>):</strong> <span
+                    id="last-command-content">{{ last_command_content }}</span></p>
+            <h2>Gemini API Response / Action:</h2>
+            <pre id="last-interpretation">{{ interpretation }}</pre>
+        </div>
+    </div>
+
+    <script>
+        const dpadUp = document.getElementById('dpad-up');
+        const dpadDown = document.getElementById('dpad-down');
+        const dpadLeft = document.getElementById('dpad-left');
+        const dpadRight = document.getElementById('dpad-right');
+
+        const btnWalkMode = document.getElementById('btn-walk-mode');
+        const btnRunMode = document.getElementById('btn-run-mode');
+        const btnStopAction = document.getElementById('btn-stop-action');
+        const btnRestAction = document.getElementById('btn-rest-action');
+
+        const btnMicEn = document.getElementById('btn-mic-en'); // New Mic EN button
+        const btnMicJp = document.getElementById('btn-mic-jp'); // New Mic JP button
+
+        const btnY = document.getElementById('btn-y');
+        const btnX = document.getElementById('btn-x');
+        const btnA = document.getElementById('btn-a');
+        const btnB = document.getElementById('btn-b');
+
+        const processingStatusText = document.getElementById('processing-status-text');
+        const statusElement = document.getElementById('system-status');
+        const modeElement = document.getElementById('current-mode');
+        const speedElement = document.getElementById('current-speed');
+        const commandTypeElement = document.getElementById('last-command-type');
+        const commandContentElement = document.getElementById('last-command-content');
+        const interpretationElement = document.getElementById('last-interpretation');
+        const robotStateElement = document.getElementById('robot-state');
+        const flashContainer = document.getElementById('flash-container');
+
+        let currentMode = 'walk';
+        let currentSpeed = 'normal';
+        let recognition;
+        let isRecording = false;
+        let currentMicButton = null; // To keep track of which mic button was pressed
+
+        async function sendCommand(commandName) {
+            const speedToSend = currentSpeed;
+            processingStatusText.textContent = `Sending: ${commandName} (${speedToSend})...`;
+            clearFlashMessages();
+            commandTypeElement.textContent = "Controller";
+            commandContentElement.textContent = `${commandName} (${speedToSend})`;
+            let tempInterpretation = { action_type: "direct_control", command: commandName };
+            if (!['stop', 'hello', 'rest', 'reset_servos'].includes(commandName)) {
+                tempInterpretation.speed = speedToSend;
+            }
+            interpretationElement.textContent = JSON.stringify(tempInterpretation, null, 2);
+            try {
+                const response = await fetch("{{ url_for('main.handle_controller_command') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: commandName, speed: speedToSend })
+                });
+                const result = await response.json();
+                processingStatusText.textContent = `Server: ${result.message || 'No message.'}`;
+                statusElement.textContent = result.message || 'No status message.';
+                interpretationElement.textContent = JSON.stringify(result.interpretation || {}, null, 2);
+                addFlashMessage(result.message || 'Processing complete.', result.status || 'info');
+            } catch (err) {
+                processingStatusText.textContent = 'Error sending command. Check console/server.';
+                statusElement.textContent = 'Error sending command.';
+                addFlashMessage('Error sending command to server.', "error");
+            }
+        }
+
+        async function sendTranscribedText(transcript, langCode = 'en-US') {
+            processingStatusText.textContent = `Sending: "${transcript}" (${langCode})...`;
+            clearFlashMessages();
+            commandTypeElement.textContent = `Voice (${langCode})`;
+            commandContentElement.textContent = transcript;
+            interpretationElement.textContent = "Processing via AI...";
+            try {
+                const response = await fetch("{{ url_for('main.handle_voice_command_text') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command_text: transcript, language_code: langCode })
+                });
+                const result = await response.json();
+                console.log("Server response (voice):", result);
+                processingStatusText.textContent = `Server: ${result.message || 'No message.'}`;
+                statusElement.textContent = result.message || 'No status message.';
+                if (result.interpretation && result.interpretation.conversational_response) {
+                    interpretationElement.textContent = "AI: " + result.interpretation.conversational_response;
+                } else if (result.interpretation) {
+                    interpretationElement.textContent = JSON.stringify(result.interpretation, null, 2);
+                } else {
+                    interpretationElement.textContent = "No interpretation data from server.";
+                }
+                addFlashMessage(result.message || 'Processing complete.', result.status || 'info');
+            } catch (err) {
+                processingStatusText.textContent = 'Error sending transcript. Check console/server.';
+                statusElement.textContent = 'Error sending transcript.';
+                addFlashMessage('Error sending transcript to server.', "error");
+            } finally {
+                if (isRecording && currentMicButton) { // Reset the correct button
+                    isRecording = false;
+                    currentMicButton.textContent = currentMicButton.id === 'btn-mic-jp' ? 'Mic (JP)' : 'Mic (EN)';
+                    currentMicButton.classList.remove('recording');
+                    currentMicButton = null;
+                }
+            }
+        }
+
+        function setActiveSpeed(speed) {
+            currentSpeed = speed;
+            speedElement.textContent = speed.charAt(0).toUpperCase() + speed.slice(1);
+            processingStatusText.textContent = `Speed set to: ${speed}`;
+        }
+
+        function setActiveMode(mode) {
+            currentMode = mode;
+            modeElement.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+            if (mode === 'walk') {
+                btnWalkMode.classList.add('mode-active-btn');
+                btnRunMode.classList.remove('mode-active-btn');
+            } else {
+                btnRunMode.classList.add('mode-active-btn');
+                btnWalkMode.classList.remove('mode-active-btn');
+            }
+            processingStatusText.textContent = `Mode: ${mode}`;
+        }
+
+        function addFlashMessage(message, category) {
+            const flashList = flashContainer.querySelector('.flash-messages') || createFlashList();
+            const listItem = document.createElement('li');
+            listItem.className = `flash-${category}`;
+            listItem.textContent = message;
+            flashList.appendChild(listItem);
+        }
+
+        function createFlashList() {
+            clearFlashMessages();
+            const ul = document.createElement('ul');
+            ul.className = 'flash-messages';
+            flashContainer.appendChild(ul);
+            return ul;
+        }
+
+        function clearFlashMessages() {
+            const existingList = flashContainer.querySelector('.flash-messages');
+            if (existingList) {
+                flashContainer.innerHTML = '';
+            }
+        }
+
+        btnWalkMode.onclick = () => setActiveMode('walk');
+        btnRunMode.onclick = () => setActiveMode('run');
+        btnStopAction.onclick = () => sendCommand('stop');
+        btnRestAction.onclick = () => sendCommand('rest');
+
+        dpadUp.onclick = () => sendCommand(currentMode === 'walk' ? 'walk' : 'run');
+        dpadDown.onclick = () => sendCommand(currentMode === 'walk' ? 'stepback' : 'runback');
+        dpadLeft.onclick = () => sendCommand(currentMode === 'walk' ? 'turnleft_step' : 'rotateleft');
+        dpadRight.onclick = () => sendCommand(currentMode === 'walk' ? 'turnright_step' : 'rotateright');
+
+        btnY.onclick = () => setActiveSpeed('fast');
+        btnX.onclick = () => setActiveSpeed('normal');
+        btnA.onclick = () => setActiveSpeed('slow');
+        btnB.onclick = () => sendCommand('hello');
+
+        // --- Web Speech API Setup ---
+        window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (window.SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            btnMicEn.disabled = false;
+            btnMicJp.disabled = false;
+            processingStatusText.textContent = "Ready.";
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.trim();
+                processingStatusText.textContent = `Transcribed: "${transcript}". Sending...`;
+                sendTranscribedText(transcript, recognition.lang); // recognition.lang is set before start()
+            };
+            recognition.onspeechend = () => {
+                if (isRecording) { recognition.stop(); } // Will trigger onresult or onerror
+            };
+            recognition.onnomatch = (event) => {
+                processingStatusText.textContent = 'Could not recognize speech. Try again.';
+                if (isRecording && currentMicButton) {
+                    isRecording = false;
+                    currentMicButton.textContent = currentMicButton.id === 'btn-mic-jp' ? 'Mic (JP)' : 'Mic (EN)';
+                    currentMicButton.classList.remove('recording');
+                    currentMicButton = null;
+                }
+                addFlashMessage('Could not recognize speech. Try again.', "warning");
+            };
+            recognition.onerror = (event) => {
+                let errorMsg = `Speech Error: ${event.error}`;
+                if (event.error === 'network') { errorMsg += ". Check network."; }
+                else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') { errorMsg += ". Mic permission denied?"; }
+                else if (event.error === 'no-speech') { errorMsg = "No speech detected."; }
+                else if (event.error === 'language-not-supported') { errorMsg = `Lang ${recognition.lang} not supported.`; }
+                processingStatusText.textContent = errorMsg;
+                if (isRecording && currentMicButton) {
+                    isRecording = false;
+                    currentMicButton.textContent = currentMicButton.id === 'btn-mic-jp' ? 'Mic (JP)' : 'Mic (EN)';
+                    currentMicButton.classList.remove('recording');
+                    currentMicButton = null;
+                }
+                addFlashMessage(errorMsg, "error");
+            };
+
+            // --- Function to handle mic button clicks ---
+            function handleMicButtonClick(lang, buttonElement) {
+                if (!isRecording) {
+                    try {
+                        recognition.lang = lang; // Set language for this recognition session
+                        recognition.start();
+                        isRecording = true;
+                        currentMicButton = buttonElement; // Store which button is active
+                        buttonElement.textContent = lang === 'ja-JP' ? '聞いています...' : 'Listening...';
+                        buttonElement.classList.add('recording');
+                        // Disable the other mic button
+                        if (lang === 'en-US') btnMicJp.disabled = true;
+                        else btnMicEn.disabled = true;
+
+                        processingStatusText.textContent = lang === 'ja-JP' ? 'コマンドを話してください...' : 'Listening... Speak your command.';
+                        clearFlashMessages();
+                    } catch (e) {
+                        processingStatusText.textContent = "Error starting recognition.";
+                        isRecording = false;
+                        buttonElement.textContent = lang === 'ja-JP' ? 'Mic (JP)' : 'Mic (EN)';
+                        buttonElement.classList.remove('recording');
+                        // Re-enable both buttons on error
+                        btnMicEn.disabled = false;
+                        btnMicJp.disabled = false;
+                        currentMicButton = null;
+                    }
+                } else { // If already recording (implies trying to stop the active one)
+                    if (currentMicButton === buttonElement) { // Only stop if this is the active button
+                        try {
+                            recognition.stop();
+                            processingStatusText.textContent = 'Stopping listening...';
+                            // Button text reset in onresult/onerror/onnomatch or finally of sendTranscribedText
+                        } catch (e) {
+                            processingStatusText.textContent = "Error stopping recognition.";
+                            isRecording = false; // Force reset
+                            buttonElement.textContent = lang === 'ja-JP' ? 'Mic (JP)' : 'Mic (EN)';
+                            buttonElement.classList.remove('recording');
+                            btnMicEn.disabled = false; // Re-enable both
+                            btnMicJp.disabled = false;
+                            currentMicButton = null;
+                        }
+                    } else {
+                        // Trying to click the other mic button while one is active
+                        processingStatusText.textContent = "Another microphone is already active.";
+                    }
+                }
+            }
+            // Add event listeners to the new mic buttons
+            btnMicEn.onclick = () => handleMicButtonClick('en-US', btnMicEn);
+            btnMicJp.onclick = () => handleMicButtonClick('ja-JP', btnMicJp);
+
+            // Override the 'finally' block in sendTranscribedText to re-enable both mic buttons
+            const originalSendTranscribedText = sendTranscribedText;
+            sendTranscribedText = async (transcript, langCode = 'en-US') => {
+                try {
+                    await originalSendTranscribedText(transcript, langCode);
+                } finally {
+                    // This 'finally' block will execute after the original one
+                    btnMicEn.disabled = false;
+                    btnMicJp.disabled = false;
+                    // The active mic button's text and class should have been reset already
+                    // by the original 'finally' or error handlers for recognition events.
+                    // We ensure 'isRecording' is false if it wasn't reset,
+                    // and currentMicButton is cleared.
+                    if (isRecording && currentMicButton) { // Check currentMicButton too
+                        currentMicButton.textContent = currentMicButton.id === 'btn-mic-jp' ? 'Mic (JP)' : 'Mic (EN)';
+                        currentMicButton.classList.remove('recording');
+                    }
+                    isRecording = false;
+                    currentMicButton = null;
+                }
+            };
+
+
+        } else { // Web Speech API not supported
+            btnMicEn.textContent = 'Mic EN N/A';
+            btnMicEn.disabled = true;
+            btnMicJp.textContent = 'Mic JP N/A';
+            btnMicJp.disabled = true;
+            processingStatusText.textContent = "Web Speech API not supported by this browser.";
+        }
+
+        window.onload = () => {
+            clearFlashMessages();
+            setActiveMode('walk');
+            setActiveSpeed('normal');
+        };
     </script>
 </body>
+
 </html>

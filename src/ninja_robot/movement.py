@@ -133,6 +133,113 @@ class MovementController:
             time.sleep(0.5)
             self.reset_servos()
 
+    def turn_left_step(self, speed: str = "normal") -> None:
+        """Performs one step of turning left."""
+        self.stop()
+        step_delay, foot_delay, lift_adj = self._get_walk_params(speed)
+        s0 = settings.SERVO_HEAD_PAN_CHANNEL
+        s2 = settings.SERVO_LEFT_ARM_CHANNEL
+        s3 = settings.SERVO_RIGHT_ARM_CHANNEL
+
+        with self._lock:
+            # Lift Right Leg
+            self.move_servo(s0, 70 + lift_adj)
+        time.sleep(step_delay)
+
+        with self._lock:
+            # Rotate feet to turn left
+            self.move_servo(s2, 70)
+            self.move_servo(s3, 70)
+        time.sleep(foot_delay)
+
+        with self._lock:
+            # Feet back to neutral
+            self.move_servo(s2, 90)
+            self.move_servo(s3, 90)
+            # Place Right Leg Down
+            self.move_servo(s0, 105)
+        time.sleep(step_delay)
+
+    def turn_right_step(self, speed: str = "normal") -> None:
+        """Performs one step of turning right."""
+        self.stop()
+        step_delay, foot_delay, lift_adj = self._get_walk_params(speed)
+        s1 = settings.SERVO_HEAD_TILT_CHANNEL
+        s2 = settings.SERVO_LEFT_ARM_CHANNEL
+        s3 = settings.SERVO_RIGHT_ARM_CHANNEL
+
+        with self._lock:
+            # Lift Left Leg
+            self.move_servo(s1, 125 - lift_adj)
+        time.sleep(step_delay)
+
+        with self._lock:
+            # Rotate feet to turn right
+            self.move_servo(s2, 110)
+            self.move_servo(s3, 110)
+        time.sleep(foot_delay)
+
+        with self._lock:
+            # Feet back to neutral
+            self.move_servo(s2, 90)
+            self.move_servo(s3, 90)
+            # Place Left Leg Down
+            self.move_servo(s1, 90)
+        time.sleep(step_delay)
+
+    def stepback(self, speed: str = "normal") -> None:
+        self._start_thread(self._stepback_loop, (speed,))
+
+    def _stepback_loop(self, speed: str) -> None:
+        step_delay, foot_delay, lift_adj = self._get_walk_params(speed)
+        s0 = settings.SERVO_HEAD_PAN_CHANNEL
+        s1 = settings.SERVO_HEAD_TILT_CHANNEL
+        s2 = settings.SERVO_LEFT_ARM_CHANNEL
+        s3 = settings.SERVO_RIGHT_ARM_CHANNEL
+
+        while not self._stop_event.is_set():
+            with self._lock:
+                self.move_servo(s1, 125 - lift_adj) # Lift Left
+            time.sleep(step_delay)
+            if self._stop_event.is_set():
+                break
+
+            with self._lock:
+                self.move_servo(s2, 100)
+                self.move_servo(s3, 80)
+            time.sleep(foot_delay)
+            with self._lock:
+                self.move_servo(s2, 90)
+                self.move_servo(s3, 90)
+            if self._stop_event.is_set():
+                break
+
+            with self._lock:
+                self.move_servo(s1, 90) # Place Left
+            time.sleep(step_delay)
+            if self._stop_event.is_set():
+                break
+
+            with self._lock:
+                self.move_servo(s0, 70 + lift_adj) # Lift Right
+            time.sleep(step_delay)
+            if self._stop_event.is_set():
+                break
+
+            with self._lock:
+                self.move_servo(s2, 100)
+                self.move_servo(s3, 80)
+            time.sleep(foot_delay)
+            with self._lock:
+                self.move_servo(s2, 90)
+                self.move_servo(s3, 90)
+            if self._stop_event.is_set():
+                break
+
+            with self._lock:
+                self.move_servo(s0, 105) # Place Right
+            time.sleep(step_delay)
+
     # --- Continuous Movements ---
 
     def walk(self, speed: str = "normal") -> None:
@@ -205,6 +312,78 @@ class MovementController:
 
         right_angle = 90 - angle_offset
         left_angle = 90 + angle_offset
+
+        while not self._stop_event.is_set():
+            with self._lock:
+                self.move_servo(s2, right_angle)
+                self.move_servo(s3, left_angle)
+            time.sleep(0.05)
+
+    def runback(self, speed: str = "normal") -> None:
+        self._start_thread(self._runback_loop, (speed,))
+
+    def _runback_loop(self, speed: str) -> None:
+        angle_offset = self._get_run_params(speed)
+        s0 = settings.SERVO_HEAD_PAN_CHANNEL
+        s1 = settings.SERVO_HEAD_TILT_CHANNEL
+        s2 = settings.SERVO_LEFT_ARM_CHANNEL
+        s3 = settings.SERVO_RIGHT_ARM_CHANNEL
+
+        with self._lock:
+            self.move_servo(s0, 15)
+            self.move_servo(s1, 180)
+        time.sleep(0.5)
+
+        right_angle = 90 + angle_offset
+        left_angle = 90 - angle_offset
+
+        while not self._stop_event.is_set():
+            with self._lock:
+                self.move_servo(s2, right_angle)
+                self.move_servo(s3, left_angle)
+            time.sleep(0.05)
+
+    def rotate_left(self, speed: str = "normal") -> None:
+        self._start_thread(self._rotate_left_loop, (speed,))
+
+    def _rotate_left_loop(self, speed: str) -> None:
+        angle_offset = self._get_run_params(speed)
+        s0 = settings.SERVO_HEAD_PAN_CHANNEL
+        s1 = settings.SERVO_HEAD_TILT_CHANNEL
+        s2 = settings.SERVO_LEFT_ARM_CHANNEL
+        s3 = settings.SERVO_RIGHT_ARM_CHANNEL
+
+        with self._lock:
+            self.move_servo(s0, 15)
+            self.move_servo(s1, 180)
+        time.sleep(0.5)
+
+        right_angle = 90 + angle_offset
+        left_angle = 90 + angle_offset
+
+        while not self._stop_event.is_set():
+            with self._lock:
+                self.move_servo(s2, right_angle)
+                self.move_servo(s3, left_angle)
+            time.sleep(0.05)
+
+    def rotate_right(self, speed: str = "normal") -> None:
+        self._start_thread(self._rotate_right_loop, (speed,))
+
+    def _rotate_right_loop(self, speed: str) -> None:
+        angle_offset = self._get_run_params(speed)
+        s0 = settings.SERVO_HEAD_PAN_CHANNEL
+        s1 = settings.SERVO_HEAD_TILT_CHANNEL
+        s2 = settings.SERVO_LEFT_ARM_CHANNEL
+        s3 = settings.SERVO_RIGHT_ARM_CHANNEL
+
+        with self._lock:
+            self.move_servo(s0, 15)
+            self.move_servo(s1, 180)
+        time.sleep(0.5)
+
+        right_angle = 90 - angle_offset
+        left_angle = 90 - angle_offset
 
         while not self._stop_event.is_set():
             with self._lock:

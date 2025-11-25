@@ -76,6 +76,24 @@ class RobotBrain:
             "hello": lambda: do(movement.hello, "Waving hello."),
             "rest": lambda: do(movement.rest, "Resting."),
             "reset": lambda: do(movement.reset_servos, "Reset to stand."),
+            "stepback": lambda: do(
+                lambda: movement.stepback(speed), f"Stepping back ({speed})."
+            ),
+            "runback": lambda: do(
+                lambda: movement.runback(speed), f"Running back ({speed})."
+            ),
+            "rotateleft": lambda: do(
+                lambda: movement.rotate_left(speed), f"Rotating left ({speed})."
+            ),
+            "rotateright": lambda: do(
+                lambda: movement.rotate_right(speed), f"Rotating right ({speed})."
+            ),
+            "turnleft_step": lambda: do(
+                lambda: movement.turn_left_step(speed), "Turning left (step)."
+            ),
+            "turnright_step": lambda: do(
+                lambda: movement.turn_right_step(speed), "Turning right (step)."
+            ),
         }
 
         if cmd in handlers:
