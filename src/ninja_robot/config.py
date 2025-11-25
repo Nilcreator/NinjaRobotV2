@@ -37,6 +37,7 @@ class Settings(BaseSettings):
 
     # Logging
     LOG_LEVEL: str = Field("INFO", description="Logging level")
+    DEBUG: bool = Field(False, description="Enable debug mode")
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
