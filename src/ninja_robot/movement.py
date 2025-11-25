@@ -162,9 +162,9 @@ class MovementController:
         with self._lock:
             self.reset_servos()
             # Wave with Left Leg (s1)
-            self.move_servo(settings.SERVO_LEFT_LEG_CHANNEL, 180)
-            time.sleep(1)
             self.move_servo(settings.SERVO_RIGHT_LEG_CHANNEL, 120)
+            time.sleep(1)
+            self.move_servo(settings.SERVO_LEFT_LEG_CHANNEL, 180)
             time.sleep(1)
 
             wave_speed = 0.01
@@ -381,10 +381,6 @@ class MovementController:
                 self.move_servo(s4, left_angle)
             time.sleep(0.1)
 
-            with self._lock:
-                self.move_servo(s3, left_angle)
-                self.move_servo(s4, right_angle)
-            time.sleep(0.1)
 
     def runback(self, speed: str = "normal") -> None:
         self._start_thread(self._runback_loop, (speed,))
