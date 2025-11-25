@@ -162,9 +162,9 @@ class MovementController:
         with self._lock:
             self.reset_servos()
             # Wave with Left Leg (s1)
-            self.move_servo(settings.SERVO_LEFT_LEG_CHANNEL, 175)
+            self.move_servo(settings.SERVO_LEFT_LEG_CHANNEL, 180)
             time.sleep(1)
-            self.move_servo(settings.SERVO_LEFT_LEG_CHANNEL, 105)
+            self.move_servo(settings.SERVO_RIGHT_LEG_CHANNEL, 120)
             time.sleep(1)
 
             wave_speed = 0.01
