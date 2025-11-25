@@ -17,13 +17,17 @@ class Settings(BaseSettings):
 
     # Hardware Configuration - GPIO (BCM)
     # Servos (Channels on PCA9685)
-    SERVO_HEAD_PAN_CHANNEL: int = Field(0, description="Head Pan Servo Channel")
-    SERVO_HEAD_TILT_CHANNEL: int = Field(1, description="Head Tilt Servo Channel")
-    SERVO_LEFT_ARM_CHANNEL: int = Field(2, description="Left Arm Servo Channel")
-    SERVO_RIGHT_ARM_CHANNEL: int = Field(3, description="Right Arm Servo Channel")
-
+    # Mapping: s1=Left Leg, s2=Right Leg, s3=Left Foot, s4=Right Foot
+    SERVO_LEFT_LEG_CHANNEL: int = Field(0, description="Left Leg Servo Channel (s1)")
+    SERVO_RIGHT_LEG_CHANNEL: int = Field(1, description="Right Leg Servo Channel (s2)")
+    SERVO_LEFT_FOOT_CHANNEL: int = Field(2, description="Left Foot Servo Channel (s3)")
+    SERVO_RIGHT_FOOT_CHANNEL: int = Field(
+        3, description="Right Foot Servo Channel (s4)"
+    )
     # Calibration
-    SERVO_CALIBRATION_FILE: str = Field("servo.json", description="Path to servo calibration file")
+    SERVO_CALIBRATION_FILE: str = Field(
+        "servo.json", description="Path to servo calibration file"
+    )
 
     # Sensors & Actuators (GPIO Pins - BCM)
     ULTRASONIC_TRIG_PIN: int = Field(21, description="Ultrasonic Trigger Pin")

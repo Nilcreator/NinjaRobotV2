@@ -50,20 +50,20 @@ class CalibrationTool:
         # Default structure if empty
         self.servos = {
             "s1": {
-                "channel": settings.SERVO_HEAD_PAN_CHANNEL,
-                "name": "Head Pan (s1)"
+                "channel": settings.SERVO_LEFT_LEG_CHANNEL,
+                "name": "Left Leg (s1)"
             },
             "s2": {
-                "channel": settings.SERVO_HEAD_TILT_CHANNEL,
-                "name": "Head Tilt (s2)"
+                "channel": settings.SERVO_RIGHT_LEG_CHANNEL,
+                "name": "Right Leg (s2)"
             },
             "s3": {
-                "channel": settings.SERVO_LEFT_ARM_CHANNEL,
-                "name": "Left Arm (s3)"
+                "channel": settings.SERVO_LEFT_FOOT_CHANNEL,
+                "name": "Left Foot (s3)"
             },
             "s4": {
-                "channel": settings.SERVO_RIGHT_ARM_CHANNEL,
-                "name": "Right Arm (s4)"
+                "channel": settings.SERVO_RIGHT_FOOT_CHANNEL,
+                "name": "Right Foot (s4)"
             },
         }
 
