@@ -249,7 +249,7 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s2, 120 + lift_adj)  # Lift Right Leg
+                self.move_servo(s2, 115 + lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
             with self._lock:
                 self.move_servo(s1,  30+ lift_adj)  # Lift Left Leg
@@ -275,7 +275,7 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 60 - lift_adj)  # Lift Left Leg
+                self.move_servo(s1, 75 - lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
             with self._lock:
                 self.move_servo(s2, 150 - lift_adj)  # Lift Right Leg
@@ -317,7 +317,7 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 60 - lift_adj)  # Lift Left Leg
+                self.move_servo(s1, 75 - lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
             with self._lock:
                 self.move_servo(s2, 150 + lift_adj)  # Lift Right Leg
@@ -343,7 +343,7 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s2, 120 + lift_adj)  # Lift Right Leg
+                self.move_servo(s2, 115 + lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
             with self._lock:
                 self.move_servo(s1, 30 + lift_adj)  # Lift Left Leg
