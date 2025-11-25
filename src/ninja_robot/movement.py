@@ -407,11 +407,6 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s3, right_angle)
-                self.move_servo(s4, left_angle)
-            time.sleep(0.1)
-
-            with self._lock:
                 self.move_servo(s3, left_angle)
                 self.move_servo(s4, right_angle)
             time.sleep(0.1)
