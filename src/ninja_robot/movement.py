@@ -193,8 +193,8 @@ class MovementController:
 
         with self._lock:
             # Rotate feet to turn lef
-            self.move_servo(s3, 110)
-            self.move_servo(s4, 110)
+            self.move_servo(s3, 120)
+            self.move_servo(s4, 120)
         time.sleep(foot_delay)
 
         with self._lock:
@@ -220,8 +220,8 @@ class MovementController:
 
         with self._lock:
             # Rotate feet to turn righ
-            self.move_servo(s3, 70)
-            self.move_servo(s4, 70)
+            self.move_servo(s3, 60)
+            self.move_servo(s4, 60)
         time.sleep(foot_delay)
 
         with self._lock:
@@ -259,8 +259,8 @@ class MovementController:
                 self.move_servo(s4, 100)
             time.sleep(foot_delay)
             with self._lock:
-                self.move_servo(s3, 90)
-                self.move_servo(s4, 90)
+                self.move_servo(s3, 60)
+                self.move_servo(s4, 60)
             if self._stop_event.is_set():
                 break
 
@@ -281,8 +281,8 @@ class MovementController:
                 self.move_servo(s4, 100)
             time.sleep(foot_delay)
             with self._lock:
-                self.move_servo(s3, 90)
-                self.move_servo(s4, 90)
+                self.move_servo(s3, 120)
+                self.move_servo(s4, 120)
             if self._stop_event.is_set():
                 break
 
@@ -319,8 +319,8 @@ class MovementController:
                 self.move_servo(s4, 80)
             time.sleep(foot_delay)
             with self._lock:
-                self.move_servo(s3, 90)
-                self.move_servo(s4, 90)
+                self.move_servo(s3, 120)
+                self.move_servo(s4, 120)
             if self._stop_event.is_set():
                 break
 
@@ -341,8 +341,8 @@ class MovementController:
                 self.move_servo(s4, 80)
             time.sleep(foot_delay)
             with self._lock:
-                self.move_servo(s3, 90)
-                self.move_servo(s4, 90)
+                self.move_servo(s3, 60)
+                self.move_servo(s4, 60)
             if self._stop_event.is_set():
                 break
 
