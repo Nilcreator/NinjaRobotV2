@@ -249,7 +249,9 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s2, 50 + lift_adj)  # Lift Right Leg
+                self.move_servo(s2, 60+ lift_adj)  # Lift Right Leg
+            time.sleep(step_delay)
+                self.move_servo(s1, 150+ lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -265,13 +267,16 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s2, 105)  # Place Right Leg
+                self.move_servo(s1, 90)  # Place Right Leg
+                self.move_servo(s2, 90)  # Place Right Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
 
             with self._lock:
                 self.move_servo(s1, 130 - lift_adj)  # Lift Left Leg
+            time.sleep(step_delay)
+                self.move_servo(s2, 30 - lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -288,6 +293,7 @@ class MovementController:
 
             with self._lock:
                 self.move_servo(s1, 90)  # Place Left Leg
+                self.move_servo(s2, 90)  # Place Left Leg
             time.sleep(step_delay)
 
     # --- Continuous Movements ---
@@ -309,7 +315,9 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 130 - lift_adj)  # Lift Lef
+                self.move_servo(s1, 120 - lift_adj)  # Lift Lef
+            time.sleep(step_delay)
+                self.move_servo(s2, 30+ lift_adj)  # Lift Lef
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -326,12 +334,15 @@ class MovementController:
 
             with self._lock:
                 self.move_servo(s1, 90)  # Place Lef
+                self.move_servo(s2, 90)  # Place Lef
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
 
             with self._lock:
-                self.move_servo(s2, 50 + lift_adj)  # Lift Righ
+                self.move_servo(s2, 60 + lift_adj)  # Lift Righ
+            time.sleep(step_delay)
+                self.move_servo(s1, 150 + lift_adj)  # Lift Righ
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -347,7 +358,8 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s2, 105)  # Place Righ
+                self.move_servo(s1, 90)  # Place Righ
+                self.move_servo(s2, 90)  # Place Righ
             time.sleep(step_delay)
 
     def run(self, speed: str = "normal") -> None:
