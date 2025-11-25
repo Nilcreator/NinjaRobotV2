@@ -119,7 +119,11 @@ class RobotBrain:
             try:
                 # Listen for wake word
                 text = self.speech.listen()
-                if text and "ninja" in text.lower():
+                if not text:
+                    time.sleep(1)
+                    continue
+
+                if "ninja" in text.lower():
                     logger.info("Wake word detected!")
                     self.speech.speak("Yes?")
 

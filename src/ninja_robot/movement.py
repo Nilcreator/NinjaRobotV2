@@ -101,7 +101,7 @@ class MovementController:
     def reset_servos(self) -> None:
         """Resets servos to standing position."""
         with self._lock:
-            self.move_servo(settings.SERVO_HEAD_PAN_CHANNEL, 105)  # Servo 0
+            self.move_servo(settings.SERVO_HEAD_PAN_CHANNEL, 90)  # Servo 0
             self.move_servo(settings.SERVO_HEAD_TILT_CHANNEL, 90)  # Servo 1
             self.move_servo(settings.SERVO_LEFT_ARM_CHANNEL, 90)  # Servo 2
             self.move_servo(settings.SERVO_RIGHT_ARM_CHANNEL, 90)  # Servo 3
@@ -111,8 +111,8 @@ class MovementController:
         """Moves robot to resting position."""
         self.stop()
         with self._lock:
-            self.move_servo(settings.SERVO_HEAD_PAN_CHANNEL, 15)
-            self.move_servo(settings.SERVO_HEAD_TILT_CHANNEL, 180)
+            self.move_servo(settings.SERVO_HEAD_PAN_CHANNEL, 25)
+            self.move_servo(settings.SERVO_HEAD_TILT_CHANNEL, 170)
             self.move_servo(settings.SERVO_LEFT_ARM_CHANNEL, 90)
             self.move_servo(settings.SERVO_RIGHT_ARM_CHANNEL, 90)
             time.sleep(1)

@@ -31,13 +31,21 @@ class SpeechManager:
         if PYGAME_AVAILABLE:
             pygame.mixer.init()
 
+        # Try to initialize microphone
+        self.microphone = None
+        device_index = self._find_microphone_index()
+        
         try:
-            device_index = self._find_microphone_index()
             self.microphone = sr.Microphone(device_index=device_index)
             logger.info("SpeechManager initialized with device index: %s", device_index)
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.error("Failed to initialize microphone: %s", e)
-            self.microphone = None
+        except Exception as e: # pylint: disable=broad-exception-caught
+            logger.warning("Failed to init mic with index %s: %s. Trying default.", device_index, e)
+            try:
+                self.microphone = sr.Microphone()
+                logger.info("SpeechManager initialized with default microphone.")
+            except Exception as e2: # pylint: disable=broad-exception-caught
+                logger.error("Failed to initialize default microphone: %s", e2)
+                self.microphone = None
 
     def _find_microphone_index(self) -> Optional[int]:
         """
@@ -61,7 +69,10 @@ class SpeechManager:
 
         try:
             # List all devices
-            for index, name in enumerate(sr.Microphone.list_microphone_names()):
+            mic_names = sr.Microphone.list_microphone_names()
+            logger.info("Available microphone devices: %s", mic_names)
+
+            for index, name in enumerate(mic_names):
                 if target_name in name.lower():
                     logger.info(
                         "Found matching microphone: '%s' at index %d", name, index
@@ -70,7 +81,7 @@ class SpeechManager:
         except Exception as e:  # pylint: disable=broad-exception-caught
             logger.warning("Error listing microphones: %s", e)
 
-        logger.warning("Microphone not found by name. Using default.")
+        logger.warning("Microphone '%s' not found. Will try default device.", target_name)
         return None
 
     def listen(self) -> Optional[str]:
