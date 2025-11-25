@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     SERVO_LEFT_ARM_CHANNEL: int = Field(2, description="Left Arm Servo Channel")
     SERVO_RIGHT_ARM_CHANNEL: int = Field(3, description="Right Arm Servo Channel")
 
+    # Calibration
+    SERVO_CALIBRATION_FILE: str = Field("servo.json", description="Path to servo calibration file")
+
     # Sensors & Actuators (GPIO Pins - BCM)
     ULTRASONIC_TRIG_PIN: int = Field(21, description="Ultrasonic Trigger Pin")
     ULTRASONIC_ECHO_PIN: int = Field(22, description="Ultrasonic Echo Pin")

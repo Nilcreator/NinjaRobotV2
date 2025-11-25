@@ -1,3 +1,5 @@
+import json
+import os
 import time
 import threading
 from typing import Optional, Tuple, Callable
@@ -27,6 +29,17 @@ class MovementController:
         self.board.set_pwm_frequency(50)  # Standard servo frequency
 
         self.obstacle_callback: Optional[Callable[[], bool]] = None
+
+        # Load Calibration
+        self.calibration_data = {}
+        if os.path.exists(settings.SERVO_CALIBRATION_FILE):
+            try:
+                with open(settings.SERVO_CALIBRATION_FILE, 'r', encoding='utf-8') as f:
+                    self.calibration_data = json.load(f)
+                logger.info("Loaded servo calibration data.")
+            except Exception as e:  # pylint: disable=broad-exception-caugh
+                logger.warning("Failed to load calibration data: %s", e)
+
         logger.info("MovementController initialized.")
 
     def set_obstacle_callback(self, callback: Callable[[], bool]) -> None:
@@ -73,7 +86,7 @@ class MovementController:
 
     def _start_thread(self, target: Callable, args: tuple = ()) -> None:
         """Starts a movement function in a separate thread."""
-        self.stop()  # Stop existing movement
+        self.stop()  # Stop existing movemen
         self._stop_event.clear()
         self._movement_thread = threading.Thread(target=target, args=args, daemon=True)
         self._movement_thread.start()
@@ -88,6 +101,34 @@ class MovementController:
         # Formula: Duty = 2.5 + (angle / 180) * 10
         return (0.5 + (angle / 90.0)) / 20 * 100
 
+    def _map_angle(self, channel: int, angle: int) -> int:
+        """Maps logical angle (0-180) to calibrated physical angle."""
+        str_chan = str(channel)
+        if str_chan not in self.calibration_data:
+            return angle
+
+        cal = self.calibration_data[str_chan]
+        min_val = cal.get("min", 0)
+        center_val = cal.get("center", 90)
+        max_val = cal.get("max", 180)
+
+        if angle == 90:
+            return center_val
+        if angle == 0:
+            return min_val
+        if angle == 180:
+            return max_val
+
+        # Interpolate
+        if angle < 90:
+            # Scale 0-90 to min-center
+            ratio = angle / 90.0
+            return int(min_val + (center_val - min_val) * ratio)
+
+        # Scale 90-180 to center-max
+        ratio = (angle - 90) / 90.0
+        return int(center_val + (max_val - center_val) * ratio)
+
     def move_servo(self, channel: int, angle: int) -> None:
         """Moves a single servo to a specific angle."""
         # Channel is 0-indexed from config (0-3), driver expects 1-4
@@ -95,7 +136,12 @@ class MovementController:
             logger.warning("Angle %s out of range (0-180). Clamping.", angle)
             angle = max(0, min(180, angle))
 
-        duty = self._angle_to_duty(angle)
+            angle = max(0, min(180, angle))
+
+        # Apply calibration mapping
+        mapped_angle = self._map_angle(channel, angle)
+
+        duty = self._angle_to_duty(mapped_angle)
         self.board.set_pwm_duty(channel + 1, duty)
 
     def reset_servos(self) -> None:
@@ -272,7 +318,7 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 125 - lift_adj)  # Lift Left
+                self.move_servo(s1, 125 - lift_adj)  # Lift Lef
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -288,13 +334,13 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 90)  # Place Left
+                self.move_servo(s1, 90)  # Place Lef
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
 
             with self._lock:
-                self.move_servo(s0, 70 + lift_adj)  # Lift Right
+                self.move_servo(s0, 70 + lift_adj)  # Lift Righ
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -310,7 +356,7 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s0, 105)  # Place Right
+                self.move_servo(s0, 105)  # Place Righ
             time.sleep(step_delay)
 
     def run(self, speed: str = "normal") -> None:
@@ -329,8 +375,8 @@ class MovementController:
         time.sleep(0.5)
 
         # Swapped logic for run
-        right_angle = 90 + angle_offset
-        left_angle = 90 - angle_offset
+        right_angle = 90 + angle_offse
+        left_angle = 90 - angle_offse
 
         while not self._stop_event.is_set():
             if self.obstacle_callback and self.obstacle_callback():
@@ -359,8 +405,8 @@ class MovementController:
         time.sleep(0.5)
 
         # Swapped logic for runback
-        right_angle = 90 - angle_offset
-        left_angle = 90 + angle_offset
+        right_angle = 90 - angle_offse
+        left_angle = 90 + angle_offse
 
         while not self._stop_event.is_set():
             if self.obstacle_callback and self.obstacle_callback():
@@ -388,9 +434,9 @@ class MovementController:
             self.move_servo(s1, 180)
         time.sleep(0.5)
 
-        # Swapped logic for rotate left
-        right_angle = 90 - angle_offset
-        left_angle = 90 - angle_offset
+        # Swapped logic for rotate lef
+        right_angle = 90 - angle_offse
+        left_angle = 90 - angle_offse
 
         while not self._stop_event.is_set():
             with self._lock:
@@ -413,9 +459,9 @@ class MovementController:
             self.move_servo(s1, 180)
         time.sleep(0.5)
 
-        # Swapped logic for rotate right
-        right_angle = 90 + angle_offset
-        left_angle = 90 + angle_offset
+        # Swapped logic for rotate righ
+        right_angle = 90 + angle_offse
+        left_angle = 90 + angle_offse
 
         while not self._stop_event.is_set():
             with self._lock:

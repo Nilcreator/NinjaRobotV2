@@ -163,6 +163,23 @@ Follow these steps to set up your NinjaRobot V2 from scratch. No advanced progra
    *   (Get a free key from [Google AI Studio](https://aistudio.google.com/)).
    *   Press `Ctrl+X`, then `Y`, then `Enter` to save.
 
+### Step 5: Servo Calibration 🎯
+Before running the robot, it is **highly recommended** to calibrate your servos to prevent overheating and ensure accurate movement.
+
+1.  Run the interactive calibration tool:
+    ```bash
+    uv run python src/ninja_robot/calibration.py
+    ```
+2.  Follow the on-screen instructions:
+    *   Select a servo (s1-s4).
+    *   Use **Up/Down Arrows** to move the servo.
+    *   Press **c** to set the Center position (90°).
+    *   Press **v** to set the Minimum position (0°).
+    *   Press **x** to set the Maximum position (180°).
+    *   Press **Enter** to save the current angle for the selected position.
+3.  Press **q** to return to the menu, and **q** again to save and exit.
+    *   This creates a `servo.json` file that the robot will automatically use.
+
 ---
 
 ## 🎮 Testing & Usage
@@ -203,6 +220,7 @@ You will see: `Starting NinjaRobot V2...`
 *   **Core Logic (`src/ninja_robot/`)**:
     *   `brain.py`: The central commander that coordinates movement, sensors, and voice.
     *   `movement.py`: Handles complex servo gaits (walking, running) using a threaded controller.
+    *   `calibration.py`: Interactive CLI tool for calibrating servo limits and centers.
     *   `sensors.py`: Manages the ultrasonic sensor and buzzer.
 *   **Web Interface (`src/ninja_robot/web/`)**:
     *   A lightweight Flask app that serves the UI and handles API requests.
