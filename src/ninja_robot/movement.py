@@ -25,7 +25,13 @@ class MovementController:
         # Enable PWM for servos
         self.board.set_pwm_enable()
         self.board.set_pwm_frequency(50)  # Standard servo frequency
+
+        self.obstacle_callback: Optional[Callable[[], bool]] = None
         logger.info("MovementController initialized.")
+
+    def set_obstacle_callback(self, callback: Callable[[], bool]) -> None:
+        """Sets the callback for checking obstacles."""
+        self.obstacle_callback = callback
 
     def _get_walk_params(self, speed: str) -> Tuple[float, float, int]:
         """Helper to get timing parameters based on speed."""
@@ -199,6 +205,11 @@ class MovementController:
         s3 = settings.SERVO_RIGHT_ARM_CHANNEL
 
         while not self._stop_event.is_set():
+            if self.obstacle_callback and self.obstacle_callback():
+                logger.warning("Obstacle detected! Stopping stepback.")
+                self.reset_servos()
+                break
+
             with self._lock:
                 self.move_servo(s0, 70 + lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
@@ -255,8 +266,13 @@ class MovementController:
         s3 = settings.SERVO_RIGHT_ARM_CHANNEL
 
         while not self._stop_event.is_set():
+            if self.obstacle_callback and self.obstacle_callback():
+                logger.warning("Obstacle detected! Stopping walk.")
+                self.reset_servos()
+                break
+
             with self._lock:
-                self.move_servo(s1, 125 - lift_adj) # Lift Left
+                self.move_servo(s1, 125 - lift_adj)  # Lift Left
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -272,13 +288,13 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 90) # Place Left
+                self.move_servo(s1, 90)  # Place Left
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
 
             with self._lock:
-                self.move_servo(s0, 70 + lift_adj) # Lift Right
+                self.move_servo(s0, 70 + lift_adj)  # Lift Right
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -294,7 +310,7 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s0, 105) # Place Right
+                self.move_servo(s0, 105)  # Place Right
             time.sleep(step_delay)
 
     def run(self, speed: str = "normal") -> None:
@@ -317,6 +333,11 @@ class MovementController:
         left_angle = 90 - angle_offset
 
         while not self._stop_event.is_set():
+            if self.obstacle_callback and self.obstacle_callback():
+                logger.warning("Obstacle detected! Stopping run.")
+                self.reset_servos()
+                break
+
             with self._lock:
                 self.move_servo(s2, right_angle)
                 self.move_servo(s3, left_angle)
@@ -342,6 +363,11 @@ class MovementController:
         left_angle = 90 + angle_offset
 
         while not self._stop_event.is_set():
+            if self.obstacle_callback and self.obstacle_callback():
+                logger.warning("Obstacle detected! Stopping runback.")
+                self.reset_servos()
+                break
+
             with self._lock:
                 self.move_servo(s2, right_angle)
                 self.move_servo(s3, left_angle)
