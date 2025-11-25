@@ -2,6 +2,8 @@ from typing import Optional, Callable
 from .logger import setup_logger
 from .movement import MovementController
 from .sensors import SensorManager
+from .voice.gemini_client import GeminiClient
+from .voice.speech import SpeechManager
 
 logger = setup_logger(__name__)
 
@@ -15,6 +17,8 @@ class RobotBrain:
     def __init__(self) -> None:
         self.movement: Optional[MovementController] = None
         self.sensors: Optional[SensorManager] = None
+        self.voice: Optional[GeminiClient] = None
+        self.speech: Optional[SpeechManager] = None
         self._initialized = False
 
     def initialize(self) -> bool:
@@ -23,6 +27,19 @@ class RobotBrain:
             logger.info("Initializing Robot Brain...")
             self.movement = MovementController()
             self.sensors = SensorManager()
+            
+            try:
+                self.voice = GeminiClient()
+                logger.info("Voice (Gemini) initialized.")
+            except Exception as e: # pylint: disable=broad-exception-caught
+                logger.warning("Voice (Gemini) initialization failed: %s", e)
+
+            try:
+                self.speech = SpeechManager()
+                logger.info("Speech Manager initialized.")
+            except Exception as e: # pylint: disable=broad-exception-caught
+                logger.warning("Speech Manager initialization failed: %s", e)
+
             self._initialized = True
             logger.info("Robot Brain initialized successfully.")
 
@@ -44,6 +61,9 @@ class RobotBrain:
 
         if self.sensors:
             self.sensors.cleanup()
+            
+        self.voice = None
+        self.speech = None
 
         self._initialized = False
         logger.info("Shutdown complete.")

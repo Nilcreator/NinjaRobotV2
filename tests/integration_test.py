@@ -18,50 +18,61 @@ def run_integration_test() -> None:
     """
     Runs a diagnostic check on all robot subsystems.
     """
-    logger.info("Starting Integration Test...")
-
-    # 1. Initialize Brain
+    brain = None
     try:
-        brain = RobotBrain()
-        if not brain.initialize():
-            logger.error("Brain initialization failed!")
+        logger.info("Starting Integration Test...")
+
+        # 1. Initialize Brain
+        try:
+            brain = RobotBrain()
+            if not brain.initialize():
+                logger.error("Brain initialization failed!")
+                return
+            logger.info("Brain initialized successfully.")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Exception during Brain init: %s", e)
             return
-        logger.info("Brain initialized successfully.")
-    except Exception as e:  # pylint: disable=broad-exception-caught
-        logger.error("Exception during Brain init: %s", e)
-        return
 
-    # 2. Check Sensors
-    if brain.sensors:
-        dist = brain.sensors.measure_distance()
-        logger.info("Sensor Check: Distance = %s cm", dist)
-    else:
-        logger.warning("SensorManager not available.")
-
-    # 3. Check Movement (Dry Run)
-    if brain.movement:
-        logger.info("Movement Check: Sending 'rest' command...")
-        brain.movement.rest()
-        time.sleep(1)
-        logger.info("Movement Check: Sending 'hello' command...")
-        brain.movement.hello()
-        time.sleep(1)
-        logger.info("Movement Check: Resetting servos...")
-        brain.movement.reset_servos()
-    else:
-        logger.warning("MovementController not available.")
-
-    # 4. Check Voice (Gemini)
-    try:
-        client = GeminiClient()
-        if client.check_connection():
-            logger.info("Gemini API Check: Connection Successful.")
+        # 2. Check Sensors
+        if brain.sensors:
+            dist = brain.sensors.measure_distance()
+            logger.info("Sensor Check: Distance = %s cm", dist)
         else:
-            logger.warning("Gemini API Check: Connection Failed (Check API Key).")
-    except ImportError:
-        logger.warning("Could not import GeminiClient.")
+            logger.warning("SensorManager not available.")
 
-    logger.info("Integration Test Complete.")
+        # 3. Check Movement (Dry Run)
+        if brain.movement:
+            logger.info("Movement Check: Sending 'rest' command...")
+            brain.movement.rest()
+            time.sleep(1)
+            logger.info("Movement Check: Sending 'hello' command...")
+            brain.movement.hello()
+            time.sleep(1)
+            logger.info("Movement Check: Resetting servos...")
+            brain.movement.reset_servos()
+        else:
+            logger.warning("MovementController not available.")
+
+        # 4. Check Voice (Gemini)
+        try:
+            client = GeminiClient()
+            if client.check_connection():
+                logger.info("Gemini API Check: Connection Successful.")
+            else:
+                logger.warning("Gemini API Check: Connection Failed (Check API Key).")
+        except ImportError:
+            logger.warning("Could not import GeminiClient.")
+
+        logger.info("Integration Test Complete.")
+
+    finally:
+        if brain:
+            logger.info("Cleaning up...")
+            if brain.movement:
+                brain.movement.rest()
+            if brain.speech:
+                brain.speech.speak("Goodbye")
+            logger.info("Cleanup complete.")
 
 
 if __name__ == "__main__":

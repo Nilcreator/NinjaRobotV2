@@ -23,7 +23,7 @@ import google.generativeai as genai
 
 # --- Configuration ---
 GOOGLE_API_KEY = "Input your Google API Key here!"  # <----------- REPLACE WITH YOUR ACTUAL API KEY
-GEMINI_MODEL_NAME = "gemini-2.0-flash-lite" # Or your preferred model
+GEMINI_MODEL_NAME = "gemini-2.5-flash" # Or your preferred model
 
 DISTANCE_THRESHOLD_CM = 15.0 # Increased threshold slightly
 
