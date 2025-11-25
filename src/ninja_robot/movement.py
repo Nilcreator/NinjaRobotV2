@@ -249,10 +249,10 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s2, 60 + lift_adj)  # Lift Right Leg
+                self.move_servo(s2, 120 + lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
             with self._lock:
-                self.move_servo(s1, 150 + lift_adj)  # Lift Left Leg
+                self.move_servo(s1,  30+ lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -275,10 +275,10 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 130 - lift_adj)  # Lift Left Leg
+                self.move_servo(s1, 60 - lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
             with self._lock:
-                self.move_servo(s2, 30 - lift_adj)  # Lift Right Leg
+                self.move_servo(s2, 150 - lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -317,10 +317,10 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 120 - lift_adj)  # Lift Left Leg
+                self.move_servo(s1, 60 - lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
             with self._lock:
-                self.move_servo(s2, 30 + lift_adj)  # Lift Right Leg
+                self.move_servo(s2, 150 + lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -343,10 +343,10 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s2, 60 + lift_adj)  # Lift Right Leg
+                self.move_servo(s2, 120 + lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
             with self._lock:
-                self.move_servo(s1, 150 + lift_adj)  # Lift Left Leg
+                self.move_servo(s1, 30 + lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
