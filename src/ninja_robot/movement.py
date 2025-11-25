@@ -79,7 +79,7 @@ class MovementController:
 
     def _start_thread(self, target: Callable, args: tuple = ()) -> None:
         """Starts a movement function in a separate thread."""
-        self.stop()  # Stop existing movemen
+        self.stop()  # Stop existing movement
         self._stop_event.clear()
         self._movement_thread = threading.Thread(target=target, args=args, daemon=True)
         self._movement_thread.start()
@@ -192,7 +192,7 @@ class MovementController:
         time.sleep(step_delay)
 
         with self._lock:
-            # Rotate feet to turn lef
+            # Rotate feet to turn left
             self.move_servo(s3, 120)
             self.move_servo(s4, 120)
         time.sleep(foot_delay)
@@ -219,7 +219,7 @@ class MovementController:
         time.sleep(step_delay)
 
         with self._lock:
-            # Rotate feet to turn righ
+            # Rotate feet to turn right
             self.move_servo(s3, 60)
             self.move_servo(s4, 60)
         time.sleep(foot_delay)
@@ -235,7 +235,7 @@ class MovementController:
     def stepback(self, speed: str = "normal") -> None:
         self._start_thread(self._stepback_loop, (speed,))
 
-    def _stepback_loop(self, speed: str) -> None:
+    def _stepback_loop(self, speed: str) -> None:  # pylint: disable=too-many-statements
         step_delay, foot_delay, lift_adj = self._get_walk_params(speed)
         s1 = settings.SERVO_LEFT_LEG_CHANNEL
         s2 = settings.SERVO_RIGHT_LEG_CHANNEL
@@ -249,9 +249,10 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s2, 60+ lift_adj)  # Lift Right Leg
+                self.move_servo(s2, 60 + lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
-                self.move_servo(s1, 150+ lift_adj)  # Lift Right Leg
+            with self._lock:
+                self.move_servo(s1, 150 + lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -276,7 +277,8 @@ class MovementController:
             with self._lock:
                 self.move_servo(s1, 130 - lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
-                self.move_servo(s2, 30 - lift_adj)  # Lift Left Leg
+            with self._lock:
+                self.move_servo(s2, 30 - lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -301,7 +303,7 @@ class MovementController:
     def walk(self, speed: str = "normal") -> None:
         self._start_thread(self._walk_loop, (speed,))
 
-    def _walk_loop(self, speed: str) -> None:
+    def _walk_loop(self, speed: str) -> None:  # pylint: disable=too-many-statements
         step_delay, foot_delay, lift_adj = self._get_walk_params(speed)
         s1 = settings.SERVO_LEFT_LEG_CHANNEL
         s2 = settings.SERVO_RIGHT_LEG_CHANNEL
@@ -315,34 +317,10 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 120 - lift_adj)  # Lift Lef
+                self.move_servo(s1, 120 - lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
-                self.move_servo(s2, 30+ lift_adj)  # Lift Lef
-            time.sleep(step_delay)
-            if self._stop_event.is_set():
-                break
-
             with self._lock:
-                self.move_servo(s3, 110)
-                self.move_servo(s4, 70)
-            time.sleep(foot_delay)
-            with self._lock:
-                self.move_servo(s3, 90)
-                self.move_servo(s4, 90)
-            if self._stop_event.is_set():
-                break
-
-            with self._lock:
-                self.move_servo(s1, 90)  # Place Lef
-                self.move_servo(s2, 90)  # Place Lef
-            time.sleep(step_delay)
-            if self._stop_event.is_set():
-                break
-
-            with self._lock:
-                self.move_servo(s2, 60 + lift_adj)  # Lift Righ
-            time.sleep(step_delay)
-                self.move_servo(s1, 150 + lift_adj)  # Lift Righ
+                self.move_servo(s2, 30 + lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
@@ -358,8 +336,34 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 90)  # Place Righ
-                self.move_servo(s2, 90)  # Place Righ
+                self.move_servo(s1, 90)  # Place Left Leg
+                self.move_servo(s2, 90)  # Place Right Leg
+            time.sleep(step_delay)
+            if self._stop_event.is_set():
+                break
+
+            with self._lock:
+                self.move_servo(s2, 60 + lift_adj)  # Lift Right Leg
+            time.sleep(step_delay)
+            with self._lock:
+                self.move_servo(s1, 150 + lift_adj)  # Lift Left Leg
+            time.sleep(step_delay)
+            if self._stop_event.is_set():
+                break
+
+            with self._lock:
+                self.move_servo(s3, 110)
+                self.move_servo(s4, 70)
+            time.sleep(foot_delay)
+            with self._lock:
+                self.move_servo(s3, 90)
+                self.move_servo(s4, 90)
+            if self._stop_event.is_set():
+                break
+
+            with self._lock:
+                self.move_servo(s1, 90)  # Place Left Leg
+                self.move_servo(s2, 90)  # Place Right Leg
             time.sleep(step_delay)
 
     def run(self, speed: str = "normal") -> None:
@@ -393,7 +397,6 @@ class MovementController:
                 self.move_servo(s4, left_angle)
             time.sleep(0.1)
 
-
     def runback(self, speed: str = "normal") -> None:
         self._start_thread(self._runback_loop, (speed,))
 
@@ -422,7 +425,6 @@ class MovementController:
                 self.move_servo(s3, right_angle)
                 self.move_servo(s4, left_angle)
             time.sleep(0.1)
-
 
     def rotate_left(self, speed: str = "normal") -> None:
         self._start_thread(self._rotate_left_loop, (speed,))
