@@ -95,12 +95,22 @@ class SensorManager:
 
         logger.info("Buzzer ON for %ss", duration)
         if GPIO_AVAILABLE:
-            GPIO.output(self.buzzer_pin, True)
+            # Use PWM to support both active (modulates) and passive (tone) buzzers
+            # 2000Hz is a standard buzzer frequency
+            try:
+                pwm = GPIO.PWM(self.buzzer_pin, 2000)
+                pwm.start(50)  # 50% duty cycle
+                time.sleep(duration)
+                pwm.stop()
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.error("Buzzer PWM error: %s", e)
+                # Fallback to simple HIGH/LOW
+                GPIO.output(self.buzzer_pin, True)
+                time.sleep(duration)
+                GPIO.output(self.buzzer_pin, False)
+        else:
+            time.sleep(duration)
 
-        time.sleep(duration)
-
-        if GPIO_AVAILABLE:
-            GPIO.output(self.buzzer_pin, False)
         logger.info("Buzzer OFF")
 
     def cleanup(self) -> None:

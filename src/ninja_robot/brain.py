@@ -10,7 +10,7 @@ from .voice.speech import SpeechManager
 logger = setup_logger(__name__)
 
 
-class RobotBrain:
+class RobotBrain:  # pylint: disable=too-many-instance-attributes
     """
     High-level coordinator for the NinjaRobot.
     Manages movement, sensors, and overall state.
@@ -24,6 +24,7 @@ class RobotBrain:
         self._initialized = False
         self._voice_thread: Optional[threading.Thread] = None
         self._voice_stop_event = threading.Event()
+        self.last_ai_response: str = ""
 
     def initialize(self) -> bool:
         """Initializes all robot subsystems."""
@@ -99,6 +100,10 @@ class RobotBrain:
         self._initialized = False
         logger.info("Shutdown complete.")
 
+    def _set_response(self, text: str) -> None:
+        """Updates the last AI response."""
+        self.last_ai_response = text
+
     def start_voice_loop(self) -> None:
         """Starts the background voice listening loop."""
         if self._voice_thread and self._voice_thread.is_alive():
@@ -134,7 +139,9 @@ class RobotBrain:
                         response = self.execute_command(cmd)
                         self.speech.speak(response)
                     else:
-                        self.speech.speak("I didn't hear a command.")
+                        msg = "I didn't hear a command."
+                        self._set_response(msg)
+                        self.speech.speak(msg)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.error("Error in voice loop: %s", e)
                 # Prevent tight loop on error
@@ -199,12 +206,18 @@ class RobotBrain:
         }
 
         if cmd in handlers:
-            return handlers[cmd]()
+            resp = handlers[cmd]()
+            self._set_response(resp)
+            return resp
 
         if cmd == "distance":
             if self.sensors:
                 dist = self.sensors.measure_distance()
-                return f"Distance: {dist} cm"
+                resp = f"Distance: {dist} cm"
+                self._set_response(resp)
+                return resp
             return "Error: Sensors not available."
 
-        return f"Unknown command: {cmd}"
+        resp = f"Unknown command: {cmd}"
+        self._set_response(resp)
+        return resp

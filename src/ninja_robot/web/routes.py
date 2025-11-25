@@ -32,11 +32,15 @@ def send_command() -> Any:
 
 @main_bp.route("/api/status", methods=["GET"])
 def get_status() -> Any:
-    """API endpoint to get robot status (e.g. distance)."""
+    """API endpoint to get robot status (e.g. distance, AI response)."""
     brain = current_app.robot_brain  # type: ignore
     # For now, just return distance as a status check
     dist = brain.sensors.measure_distance() if brain.sensors else -1
-    return jsonify({"distance": dist})
+    ai_response = brain.last_ai_response
+    return jsonify({
+        "distance": dist,
+        "ai_response": ai_response
+    })
 
 
 # --- Legacy Routes for Gamepad UI ---

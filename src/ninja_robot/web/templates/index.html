@@ -429,7 +429,6 @@
                 </div>
                 <div class="center-row"> <!-- New row for Mic buttons -->
                     <button id="btn-mic-en" class="ctrl-button center-button" disabled>Mic (EN)</button>
-                    <button id="btn-mic-jp" class="ctrl-button center-button" disabled>Mic (JP)</button>
                 </div>
             </div>
 
@@ -458,6 +457,10 @@
                     id="last-command-content">{{ last_command_content }}</span></p>
             <h2>Gemini API Response / Action:</h2>
             <pre id="last-interpretation">{{ interpretation }}</pre>
+            <h2>AI Dialog</h2>
+            <div id="ai-response-box"
+                style="background: #222; padding: 10px; border-radius: 4px; min-height: 40px; color: #4caf50; font-weight: bold; border: 1px solid #444;">
+                ...</div>
         </div>
     </div>
 
@@ -473,7 +476,6 @@
         const btnRestAction = document.getElementById('btn-rest-action');
 
         const btnMicEn = document.getElementById('btn-mic-en'); // New Mic EN button
-        const btnMicJp = document.getElementById('btn-mic-jp'); // New Mic JP button
 
         const btnY = document.getElementById('btn-y');
         const btnX = document.getElementById('btn-x');
@@ -629,7 +631,6 @@
             recognition.maxAlternatives = 1;
 
             btnMicEn.disabled = false;
-            btnMicJp.disabled = false;
             processingStatusText.textContent = "Ready.";
 
             recognition.onresult = (event) => {
@@ -644,7 +645,7 @@
                 processingStatusText.textContent = 'Could not recognize speech. Try again.';
                 if (isRecording && currentMicButton) {
                     isRecording = false;
-                    currentMicButton.textContent = currentMicButton.id === 'btn-mic-jp' ? 'Mic (JP)' : 'Mic (EN)';
+                    currentMicButton.textContent = 'Mic (EN)';
                     currentMicButton.classList.remove('recording');
                     currentMicButton = null;
                 }
@@ -659,7 +660,7 @@
                 processingStatusText.textContent = errorMsg;
                 if (isRecording && currentMicButton) {
                     isRecording = false;
-                    currentMicButton.textContent = currentMicButton.id === 'btn-mic-jp' ? 'Mic (JP)' : 'Mic (EN)';
+                    currentMicButton.textContent = 'Mic (EN)';
                     currentMicButton.classList.remove('recording');
                     currentMicButton = null;
                 }
@@ -677,19 +678,25 @@
                         buttonElement.textContent = lang === 'ja-JP' ? '聞いています...' : 'Listening...';
                         buttonElement.classList.add('recording');
                         // Disable the other mic button
-                        if (lang === 'en-US') btnMicJp.disabled = true;
-                        else btnMicEn.disabled = true;
+                        // if (lang === 'en-US') btnMicJp.disabled = true;
+                        // else btnMicEn.disabled = true;
+                        btnMicEn.disabled = true; // Disable self (actually we want to keep it enabled to stop? No, logic says click again to stop)
+                        // Wait, the logic is: click to start, click again to stop.
+                        // But if we disable it, we can't click it.
+                        // The original logic disabled the *other* button.
+                        // Since there is only one button now, we don't need to disable anything else.
+                        // But we might want to prevent double clicks?
+                        // Actually, let's just NOT disable it.
 
-                        processingStatusText.textContent = lang === 'ja-JP' ? 'コマンドを話してください...' : 'Listening... Speak your command.';
+                        processingStatusText.textContent = 'Listening... Speak your command.';
                         clearFlashMessages();
                     } catch (e) {
                         processingStatusText.textContent = "Error starting recognition.";
                         isRecording = false;
-                        buttonElement.textContent = lang === 'ja-JP' ? 'Mic (JP)' : 'Mic (EN)';
+                        buttonElement.textContent = 'Mic (EN)';
                         buttonElement.classList.remove('recording');
                         // Re-enable both buttons on error
                         btnMicEn.disabled = false;
-                        btnMicJp.disabled = false;
                         currentMicButton = null;
                     }
                 } else { // If already recording (implies trying to stop the active one)
@@ -701,10 +708,9 @@
                         } catch (e) {
                             processingStatusText.textContent = "Error stopping recognition.";
                             isRecording = false; // Force reset
-                            buttonElement.textContent = lang === 'ja-JP' ? 'Mic (JP)' : 'Mic (EN)';
+                            buttonElement.textContent = 'Mic (EN)';
                             buttonElement.classList.remove('recording');
                             btnMicEn.disabled = false; // Re-enable both
-                            btnMicJp.disabled = false;
                             currentMicButton = null;
                         }
                     } else {
@@ -715,7 +721,6 @@
             }
             // Add event listeners to the new mic buttons
             btnMicEn.onclick = () => handleMicButtonClick('en-US', btnMicEn);
-            btnMicJp.onclick = () => handleMicButtonClick('ja-JP', btnMicJp);
 
             // Override the 'finally' block in sendTranscribedText to re-enable both mic buttons
             const originalSendTranscribedText = sendTranscribedText;
@@ -725,13 +730,12 @@
                 } finally {
                     // This 'finally' block will execute after the original one
                     btnMicEn.disabled = false;
-                    btnMicJp.disabled = false;
                     // The active mic button's text and class should have been reset already
                     // by the original 'finally' or error handlers for recognition events.
                     // We ensure 'isRecording' is false if it wasn't reset,
                     // and currentMicButton is cleared.
                     if (isRecording && currentMicButton) { // Check currentMicButton too
-                        currentMicButton.textContent = currentMicButton.id === 'btn-mic-jp' ? 'Mic (JP)' : 'Mic (EN)';
+                        currentMicButton.textContent = 'Mic (EN)';
                         currentMicButton.classList.remove('recording');
                     }
                     isRecording = false;
@@ -743,8 +747,6 @@
         } else { // Web Speech API not supported
             btnMicEn.textContent = 'Mic EN N/A';
             btnMicEn.disabled = true;
-            btnMicJp.textContent = 'Mic JP N/A';
-            btnMicJp.disabled = true;
             processingStatusText.textContent = "Web Speech API not supported by this browser.";
         }
 
@@ -752,6 +754,22 @@
             clearFlashMessages();
             setActiveMode('walk');
             setActiveSpeed('normal');
+
+            // Start Polling for Status
+            setInterval(async () => {
+                try {
+                    const res = await fetch('/api/status');
+                    const data = await res.json();
+                    if (data.ai_response) {
+                        const box = document.getElementById('ai-response-box');
+                        if (box.textContent !== data.ai_response) {
+                            box.textContent = data.ai_response;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Poll error", e);
+                }
+            }, 1000);
         };
     </script>
 </body>

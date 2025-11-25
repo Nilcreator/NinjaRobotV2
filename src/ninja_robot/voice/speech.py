@@ -31,58 +31,23 @@ class SpeechManager:
         if PYGAME_AVAILABLE:
             pygame.mixer.init()
 
-        # Try to initialize microphone
+        # Initialize microphone
         self.microphone = None
-        device_index = self._find_microphone_index()
-        
+        device_index = settings.MICROPHONE_DEVICE_INDEX
+
         try:
-            self.microphone = sr.Microphone(device_index=device_index)
-            logger.info("SpeechManager initialized with device index: %s", device_index)
-        except Exception as e: # pylint: disable=broad-exception-caught
-            logger.warning("Failed to init mic with index %s: %s. Trying default.", device_index, e)
-            try:
+            if device_index is not None:
+                self.microphone = sr.Microphone(device_index=device_index)
+                logger.info(
+                    "SpeechManager initialized with configured device index: %s",
+                    device_index
+                )
+            else:
                 self.microphone = sr.Microphone()
-                logger.info("SpeechManager initialized with default microphone.")
-            except Exception as e2: # pylint: disable=broad-exception-caught
-                logger.error("Failed to initialize default microphone: %s", e2)
-                self.microphone = None
-
-    def _find_microphone_index(self) -> Optional[int]:
-        """
-        Finds the index of the configured microphone device.
-        """
-        # 1. Prefer explicit index from config
-        if settings.MICROPHONE_DEVICE_INDEX is not None:
-            logger.info(
-                "Using configured microphone index: %s",
-                settings.MICROPHONE_DEVICE_INDEX,
-            )
-            return settings.MICROPHONE_DEVICE_INDEX
-
-        # 2. Search by name
-        # pylint: disable=no-member
-        target_name = settings.MICROPHONE_DEVICE_NAME.lower()
-        logger.info(
-            "Searching for microphone with name containing: '%s'",
-            target_name,
-        )
-
-        try:
-            # List all devices
-            mic_names = sr.Microphone.list_microphone_names()
-            logger.info("Available microphone devices: %s", mic_names)
-
-            for index, name in enumerate(mic_names):
-                if target_name in name.lower():
-                    logger.info(
-                        "Found matching microphone: '%s' at index %d", name, index
-                    )
-                    return index
+                logger.info("SpeechManager initialized with default system microphone.")
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.warning("Error listing microphones: %s", e)
-
-        logger.warning("Microphone '%s' not found. Will try default device.", target_name)
-        return None
+            logger.error("Failed to initialize microphone: %s", e)
+            self.microphone = None
 
     def listen(self) -> Optional[str]:
         """
