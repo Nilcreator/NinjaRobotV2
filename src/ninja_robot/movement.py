@@ -407,9 +407,10 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s3, left_angle)
-                self.move_servo(s4, right_angle)
+                self.move_servo(s3, right_angle)
+                self.move_servo(s4, left_angle)
             time.sleep(0.1)
+
 
     def rotate_left(self, speed: str = "normal") -> None:
         self._start_thread(self._rotate_left_loop, (speed,))
