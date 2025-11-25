@@ -7,9 +7,15 @@ import termios
 import json
 import os
 from typing import Dict, Any
-from .config import settings
-from .movement import MovementController
-from .logger import setup_logger
+
+# Ensure we can import ninja_robot when running as a script
+if __name__ == "__main__":
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+# pylint: disable=wrong-import-position
+from ninja_robot.config import settings
+from ninja_robot.movement import MovementController
+from ninja_robot.logger import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -43,10 +49,22 @@ class CalibrationTool:
 
         # Default structure if empty
         self.servos = {
-            "s1": {"channel": settings.SERVO_HEAD_PAN_CHANNEL, "name": "Head Pan (s1)"},
-            "s2": {"channel": settings.SERVO_HEAD_TILT_CHANNEL, "name": "Head Tilt (s2)"},
-            "s3": {"channel": settings.SERVO_LEFT_ARM_CHANNEL, "name": "Left Arm (s3)"},
-            "s4": {"channel": settings.SERVO_RIGHT_ARM_CHANNEL, "name": "Right Arm (s4)"},
+            "s1": {
+                "channel": settings.SERVO_HEAD_PAN_CHANNEL,
+                "name": "Head Pan (s1)"
+            },
+            "s2": {
+                "channel": settings.SERVO_HEAD_TILT_CHANNEL,
+                "name": "Head Tilt (s2)"
+            },
+            "s3": {
+                "channel": settings.SERVO_LEFT_ARM_CHANNEL,
+                "name": "Left Arm (s3)"
+            },
+            "s4": {
+                "channel": settings.SERVO_RIGHT_ARM_CHANNEL,
+                "name": "Right Arm (s4)"
+            },
         }
 
     def _load_calibration(self) -> Dict[str, Any]:
@@ -54,7 +72,8 @@ class CalibrationTool:
         if os.path.exists(self.calibration_file):
             try:
                 with open(self.calibration_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    data: Dict[str, Any] = json.load(f)
+                    return data
             except Exception as e:  # pylint: disable=broad-exception-caught
                 print(f"Error loading calibration file: {e}")
         return {}
@@ -71,14 +90,16 @@ class CalibrationTool:
     def calibrate_servo(self, servo_key: str) -> None:
         """Runs the interactive calibration loop for a single servo."""
         servo = self.servos[servo_key]
-        channel = servo["channel"]
+        channel = int(str(servo["channel"]))  # Explicit cast for mypy
         name = servo["name"]
 
         # Get current calibration or defaults
-        cal = self.calibration_data.get(str(channel), {"min": 0, "center": 90, "max": 180})
+        cal = self.calibration_data.get(
+            str(channel), {"min": 0, "center": 90, "max": 180}
+        )
 
         current_pos_name = "center"
-        current_angle = cal[current_pos_name]
+        current_angle = int(cal[current_pos_name])
 
         print(f"\n--- Calibrating {name} ---")
         print("Controls:")
@@ -106,13 +127,13 @@ class CalibrationTool:
                 print(f"\nSaved {current_pos_name} as {current_angle}")
             elif key == 'c':
                 current_pos_name = "center"
-                current_angle = cal["center"]
+                current_angle = int(cal["center"])
             elif key == 'v':
                 current_pos_name = "min"
-                current_angle = cal["min"]
+                current_angle = int(cal["min"])
             elif key == 'x':
                 current_pos_name = "max"
-                current_angle = cal["max"]
+                current_angle = int(cal["max"])
             elif key == '\x1b[A':  # Up Arrow
                 current_angle = min(180, current_angle + 1)
             elif key == '\x1b[B':  # Down Arrow
