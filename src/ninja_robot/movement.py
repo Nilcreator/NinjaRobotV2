@@ -255,12 +255,12 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s3, 80)
-                self.move_servo(s4, 100)
+                self.move_servo(s3, 110)
+                self.move_servo(s4, 70)
             time.sleep(foot_delay)
             with self._lock:
-                self.move_servo(s3, 60)
-                self.move_servo(s4, 60)
+                self.move_servo(s3, 90)
+                self.move_servo(s4, 90)
             if self._stop_event.is_set():
                 break
 
@@ -277,12 +277,12 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s3, 80)
-                self.move_servo(s4, 100)
+                self.move_servo(s3, 110)
+                self.move_servo(s4, 70)
             time.sleep(foot_delay)
             with self._lock:
-                self.move_servo(s3, 120)
-                self.move_servo(s4, 120)
+                self.move_servo(s3, 90)
+                self.move_servo(s4, 90)
             if self._stop_event.is_set():
                 break
 
@@ -315,12 +315,12 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s3, 100)
-                self.move_servo(s4, 80)
+                self.move_servo(s3, 70)
+                self.move_servo(s4, 110)
             time.sleep(foot_delay)
             with self._lock:
-                self.move_servo(s3, 120)
-                self.move_servo(s4, 120)
+                self.move_servo(s3, 90)
+                self.move_servo(s4, 90)
             if self._stop_event.is_set():
                 break
 
@@ -337,12 +337,12 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s3, 100)
-                self.move_servo(s4, 80)
+                self.move_servo(s3, 70)
+                self.move_servo(s4, 110)
             time.sleep(foot_delay)
             with self._lock:
-                self.move_servo(s3, 60)
-                self.move_servo(s4, 60)
+                self.move_servo(s3, 90)
+                self.move_servo(s4, 90)
             if self._stop_event.is_set():
                 break
 
