@@ -27,6 +27,14 @@ class Settings(BaseSettings):
     ULTRASONIC_ECHO_PIN: int = Field(22, description="Ultrasonic Echo Pin")
     BUZZER_PIN: int = Field(23, description="Active Buzzer Pin")
 
+    # Audio Configuration
+    MICROPHONE_DEVICE_INDEX: int | None = Field(
+        None, description="Specific index of the microphone device"
+    )
+    MICROPHONE_DEVICE_NAME: str = Field(
+        "inmp441", description="Substring to match for microphone device name"
+    )
+
     # Logging
     LOG_LEVEL: str = Field("INFO", description="Logging level")
 

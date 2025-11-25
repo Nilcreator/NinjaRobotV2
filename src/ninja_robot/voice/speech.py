@@ -4,6 +4,7 @@ import time
 from typing import Optional
 import speech_recognition as sr  # type: ignore
 from gtts import gTTS  # type: ignore
+from ..config import settings
 from ..logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -31,11 +32,46 @@ class SpeechManager:
             pygame.mixer.init()
 
         try:
-            self.microphone = sr.Microphone()
-            logger.info("SpeechManager initialized.")
+            device_index = self._find_microphone_index()
+            self.microphone = sr.Microphone(device_index=device_index)
+            logger.info("SpeechManager initialized with device index: %s", device_index)
         except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error("Failed to initialize microphone: %s", e)
             self.microphone = None
+
+    def _find_microphone_index(self) -> Optional[int]:
+        """
+        Finds the index of the configured microphone device.
+        """
+        # 1. Prefer explicit index from config
+        if settings.MICROPHONE_DEVICE_INDEX is not None:
+            logger.info(
+                "Using configured microphone index: %s",
+                settings.MICROPHONE_DEVICE_INDEX,
+            )
+            return settings.MICROPHONE_DEVICE_INDEX
+
+        # 2. Search by name
+        # pylint: disable=no-member
+        target_name = settings.MICROPHONE_DEVICE_NAME.lower()
+        logger.info(
+            "Searching for microphone with name containing: '%s'",
+            target_name,
+        )
+
+        try:
+            # List all devices
+            for index, name in enumerate(sr.Microphone.list_microphone_names()):
+                if target_name in name.lower():
+                    logger.info(
+                        "Found matching microphone: '%s' at index %d", name, index
+                    )
+                    return index
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.warning("Error listing microphones: %s", e)
+
+        logger.warning("Microphone not found by name. Using default.")
+        return None
 
     def listen(self) -> Optional[str]:
         """

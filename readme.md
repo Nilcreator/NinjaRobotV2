@@ -17,7 +17,7 @@ To build NinjaRobot V2, you will need the following components:
 | **Servos** | Micro Servos (SG90 or MG90S) | 4 |
 | **Ultrasonic Sensor** | HC-SR04 | 1 |
 | **Buzzer** | Active Buzzer Module | 1 |
-| **Microphone** | USB Microphone (for voice control) | 1 |
+| **Microphone** | **INMP441** (I2S MEMS Microphone) | 1 |
 | **Speaker** | USB Speaker or 3.5mm Speaker (for voice response) | 1 |
 | **Power Supply** | 2x 18650 Li-ion Batteries (or 5V/3A Power Bank) | 1 |
 | **MicroSD Card** | 16GB or larger (Class 10) | 1 |
@@ -50,12 +50,51 @@ Connect the HC-SR04 sensor to the GPIO headers.
 
 > **⚠️ IMPORTANT:** The HC-SR04 Echo pin outputs 5V. You **MUST** use a voltage divider (1kΩ/2kΩ resistors) to drop it to 3.3V before connecting to the Raspberry Pi GPIO 22 to avoid damaging the Pi.
 
-### 3. Buzzer (Sound)
-| Buzzer Pin | Raspberry Pi GPIO (BCM) | Physical Pin |
-|------------|-------------------------|--------------|
-| Signal | **GPIO 23** | Pin 16 |
-| VCC | 3.3V or 5V | - |
-| GND | GND | - |
+### 4. INMP441 Microphone (I2S)
+The INMP441 is a high-quality I2S microphone. Connect it to the GPIO headers.
+
+| INMP441 Pin | Raspberry Pi GPIO (BCM) | Physical Pin | Description |
+|-------------|-------------------------|--------------|-------------|
+| **VDD** | 3.3V | Pin 1 | Power |
+| **GND** | GND | Pin 6 | Ground |
+| **SCK** | **GPIO 18** | Pin 12 | I2S Bit Clock (BCLK) |
+| **WS** | **GPIO 19** | Pin 35 | I2S Word Select (LRCLK) |
+| **SD** | **GPIO 20** | Pin 38 | I2S Data In (DIN) |
+| **L/R** | GND | - | Select Left Channel |
+
+#### ⚠️ Critical: Enabling I2S Audio
+To use the INMP441, you must enable I2S in the Raspberry Pi OS.
+
+1.  **Edit the config file**:
+    ```bash
+    sudo nano /boot/config.txt
+    ```
+    *(Note: On Bookworm, this might be `/boot/firmware/config.txt`)*
+
+2.  **Uncomment/Add these lines**:
+    ```ini
+    # Enable I2S
+    dtparam=i2s=on
+    ```
+
+3.  **Compile/Install the I2S Module** (Recommended for INMP441):
+    The easiest way is often to use a pre-compiled overlay or a simple installer script.
+    However, for a quick start, try adding this to `config.txt` if you have a generic I2S overlay:
+    ```ini
+    dtoverlay=googlevoicehat-soundcard
+    ```
+    *If that doesn't work, you may need to compile a specific loader for the INMP441. See online guides for "Raspberry Pi INMP441 setup".*
+
+4.  **Reboot**:
+    ```bash
+    sudo reboot
+    ```
+
+5.  **Verify**:
+    ```bash
+    arecord -l
+    ```
+    You should see your I2S microphone listed.
 
 ---
 
