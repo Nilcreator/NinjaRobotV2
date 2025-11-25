@@ -17,7 +17,7 @@ class MovementController:
         self.board = get_board()
         self._stop_event = threading.Event()
         self._movement_thread: Optional[threading.Thread] = None
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
 
         if not self.board.begin():
             logger.error("Failed to initialize Expansion Board for MovementController.")

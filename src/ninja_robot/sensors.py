@@ -29,6 +29,7 @@ class SensorManager:
 
         if GPIO_AVAILABLE:
             try:
+                GPIO.setwarnings(False)
                 GPIO.setmode(GPIO.BCM)
                 GPIO.setup(self.trig_pin, GPIO.OUT)
                 GPIO.setup(self.echo_pin, GPIO.IN)
