@@ -249,14 +249,14 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s2, 70 + lift_adj)  # Lift Right Leg
+                self.move_servo(s2, 50 + lift_adj)  # Lift Right Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
 
             with self._lock:
-                self.move_servo(s3, 110)
-                self.move_servo(s4, 70)
+                self.move_servo(s3, 70)
+                self.move_servo(s4, 110)
             time.sleep(foot_delay)
             with self._lock:
                 self.move_servo(s3, 90)
@@ -271,14 +271,14 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 125 - lift_adj)  # Lift Left Leg
+                self.move_servo(s1, 130 - lift_adj)  # Lift Left Leg
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
 
             with self._lock:
-                self.move_servo(s3, 110)
-                self.move_servo(s4, 70)
+                self.move_servo(s3, 70)
+                self.move_servo(s4, 110)
             time.sleep(foot_delay)
             with self._lock:
                 self.move_servo(s3, 90)
@@ -309,14 +309,14 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s1, 125 - lift_adj)  # Lift Lef
+                self.move_servo(s1, 130 - lift_adj)  # Lift Lef
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
 
             with self._lock:
-                self.move_servo(s3, 70)
-                self.move_servo(s4, 110)
+                self.move_servo(s3, 110)
+                self.move_servo(s4, 70)
             time.sleep(foot_delay)
             with self._lock:
                 self.move_servo(s3, 90)
@@ -331,14 +331,14 @@ class MovementController:
                 break
 
             with self._lock:
-                self.move_servo(s2, 70 + lift_adj)  # Lift Righ
+                self.move_servo(s2, 50 + lift_adj)  # Lift Righ
             time.sleep(step_delay)
             if self._stop_event.is_set():
                 break
 
             with self._lock:
-                self.move_servo(s3, 70)
-                self.move_servo(s4, 110)
+                self.move_servo(s3, 110)
+                self.move_servo(s4, 70)
             time.sleep(foot_delay)
             with self._lock:
                 self.move_servo(s3, 90)
